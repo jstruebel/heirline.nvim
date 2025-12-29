@@ -7,10 +7,36 @@ local tbl_contains = vim.tbl_contains
 local tbl_keys = vim.tbl_keys
 local tbl_filter = vim.tbl_filter
 
----@type fun(name: string): table
-function M.get_highlight(name)
-    return vim.api.nvim_get_hl(0, { name = name, link = false, create = false })
+local function get_highlight_deprecated(name)
+    local hl = vim.api.nvim_get_hl_by_name(name, vim.o.termguicolors)
+    if vim.o.termguicolors then
+        hl.fg = hl.foreground
+        hl.bg = hl.background
+        hl.ctermfg = hl.foreground
+        hl.ctermbg = hl.background
+        hl.sp = hl.special
+        hl.foreground = nil
+        hl.background = nil
+        hl.special = nil
+    else
+        hl.fg = hl.foreground
+        hl.bg = hl.background
+        hl.ctermfg = hl.foreground
+        hl.ctermbg = hl.background
+        hl.foreground = nil
+        hl.background = nil
+        hl.special = nil
+    end
+    return hl
 end
+
+local function get_highlight(name)
+    return vim.api.nvim_get_hl(0, { name = name, link = false })
+end
+
+---Get highlight properties for a given highlight name
+---@type fun(name: string): table
+M.get_highlight = vim.fn.exists("*nvim_get_hl") == 1 and get_highlight or get_highlight_deprecated
 
 ---Copy the given component, merging its fields with `with`
 ---@param block table
